@@ -2,12 +2,9 @@ import React from 'react';
 import axios from 'axios';
 import auth from '../../Auth';
 
-export default function Member()
+export default function Home()
 {
-    const [loading, setLoading] = React.useState(true);
-    const [logged, setLogged] = React.useState(false);
-
-    React.useEffect(() => {
+    const checkLogged = () => {
         axios.get("http://localhost:5000/", {
             headers: {
                 'Authorization' : 'Bearer ' + localStorage.getItem('jwt')
@@ -23,15 +20,29 @@ export default function Member()
             console.error(e);
             setLoading(false);
         })
-    }, []);
+    }
+
+    const [loading, setLoading] = React.useState(true);
+    const [logged, setLogged] = React.useState(false);
+
+    React.useEffect(checkLogged, []);
 
     const logOut = React.useCallback(async (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
-        localStorage.setItem('jwt','');
-        localStorage.setItem('username','');
-        auth.acc_name = '';
-        auth.token = '';
-        setLogged(false);
+        const res = await axios.get("http://localhost:5000/logout", {
+            headers: {
+                'Authorization' : 'Bearer ' + localStorage.getItem('jwt')
+            }
+        })
+        if (res.status === 200) {
+            localStorage.setItem('jwt','');
+            localStorage.setItem('username','');
+            auth.acc_name = '';
+            auth.token = '';
+            setLogged(false);
+        } else {
+            console.log(res)
+        }
     }, [])
 
     if (loading) {
