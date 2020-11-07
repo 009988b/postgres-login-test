@@ -3,11 +3,17 @@ const bodyParser = require('body-parser');
 const exjwt = require('express-jwt');
 const cors = require('cors');
 const user = require('./user');
+const reset = require('./reset');
 
 require('dotenv').config()
 
-const jwtMW = exjwt({
-    secret: process.env.JWTSECRET,
+const userMW = exjwt({
+    secret: process.env.USER_SECRET,
+    algorithms: [`HS256`]
+})
+
+const resetMW = exjwt({
+    secret: process.env.RESET_SECRET,
     algorithms: [`HS256`]
 })
 
@@ -33,8 +39,13 @@ app.listen(PORT, () => {
     console.log("Listening on port: " + PORT);
 });
 
-app.get('/', jwtMW, user.checklogged)
-app.post('/signup', user.create)
-app.post('/mail-reset', user.reset)
-app.post('/login', user.validate)
-app.get('/logout', user.invalidate)
+//General
+//User
+app.get('/user/isauth', userMW, user.isAuth)
+app.get('/user/deauth', user.invalidate)
+app.post('/user/new', user.create)
+app.post('/user/auth', user.validate)
+//Reset
+app.post('/reset/init', reset.init)
+app.post('/reset/auth', reset.check)
+app.post('/reset/set-pw', resetMW, reset.setPass)

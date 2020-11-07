@@ -1,7 +1,8 @@
-var jwt = require('jsonwebtoken');
-var bcrypt = require('bcrypt');
-var { recaptcha, pool } = require('./data');
-var blacklist = require('./blacklist');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const { pool } = require('./data');
+const blacklist = require('./blacklist');
+const reset = require('./reset');
 
 const login = async (username, pass) => {
     try {
@@ -17,7 +18,7 @@ const login = async (username, pass) => {
             const result = await bcrypt.compare(pass, hashed);
             client.release()
             if (result) {
-                const token = jwt.sign({username: username}, process.env.JWTSECRET, {expiresIn: '15m'});
+                const token = jwt.sign({username: username}, process.env.USER_SECRET, {expiresIn: '15m'});
                 return token;
             } else {
                 console.log(`Login Attempt: ${username}'s password incorrectly guessed.`);
@@ -73,7 +74,7 @@ exports.invalidate = (req, res) => {
     let status = '';
     if (token) {
         blacklist.tokens.push(token)
-        jwt.verify(token, process.env.JWTSECRET, {},(err, decoded) => {
+        jwt.verify(token, process.env.USER_SECRET, {},(err, decoded) => {
             status = `Success: ${decoded.username} has logged out.`;
         })
         res.json({ status: status });
@@ -83,12 +84,12 @@ exports.invalidate = (req, res) => {
     console.log(status)
 }
 
-exports.checklogged = (req, res) => {
+exports.isValid = (req, res) => {
     let auth = req.headers['authorization']
     let token = auth.split(' ')[1];
     let blacklisted = blacklist.tokens.find(t => t === token)
     if (!blacklisted) {
-        jwt.verify(token, process.env.JWTSECRET, {}, (e, decoded) => {
+        jwt.verify(token, process.env.USER_SECRET, {}, (e, decoded) => {
             console.log(e);
             if (e) {
                 res.sendStatus(401);
@@ -99,16 +100,6 @@ exports.checklogged = (req, res) => {
     } else {
         res.sendStatus(401);
     }
-}
-
-exports.reset = (req, res) => {
-    recaptcha.verify(req, (err, data) => {
-        if (data) {
-            //send mail containing 6 dig. code
-            //store code in timed jwt
-            res.sendStatus(200);
-        }
-    })
 }
 
 exports.create = (req, res) => {

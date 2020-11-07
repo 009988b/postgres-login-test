@@ -28,7 +28,7 @@ export default function Login() {
             'username' : username,
             'password' : password
         }
-        const response = await axios.post("http://localhost:5000/login", payload, {
+        const response = await axios.post("http://localhost:5000/user/auth", payload, {
             headers: {
                 'Content-Type': 'application/json',
             }});
@@ -46,14 +46,14 @@ export default function Login() {
         setIsSending(false)
     }
 
-    const checkLogged = () => {
+    const isAuth = () => {
         console.log("Already logged in? " + localStorage.getItem('username') + '\n' + auth.token);
         if (!localStorage.getItem('jwt')) {
             setLoading(false);
         } else {
             //Users must login, this code will not check existing token
             if (status === 'sent') {
-                axios.get("http://localhost:5000/", {
+                axios.get("http://localhost:5000/user/isauth", {
                     headers: {
                         authorization: 'Bearer ' + auth.token
                     }
@@ -83,7 +83,7 @@ export default function Login() {
 
     const submitForm = React.useCallback(sendData, [username, password, isSending]);
 
-    React.useEffect(checkLogged, [status]);
+    React.useEffect(isAuth, [status]);
 
     if (loading || isSending) {
         return (
@@ -111,7 +111,7 @@ export default function Login() {
                     </div>
                     <div className="mb-2">
                         <label className="block text-gray-700 text-sm mb-2">
-                            Passwords
+                            Password
                         </label>
                         <input
                             className="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" name="password" type="password" onChange={e => setPassword(e.target.value)}/>

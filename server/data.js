@@ -13,7 +13,3 @@ exports.pool = new Pool({
 }).on('error', (e, client) => {
     console.error('Error:', e);
 });
-
-
-
-

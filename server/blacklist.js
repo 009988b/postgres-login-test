@@ -2,11 +2,11 @@ var jwt = require('jsonwebtoken')
 
 exports.tokens = [];
 
-update = () => {
+const update = () => {
     let status = `blacklisted tokens: ${this.tokens.length} -> `;
     for (const t of this.tokens) {
         try {
-            jwt.verify(token, process.env.JWTSECRET)
+            jwt.verify(t, process.env.USER_SECRET)
         } catch (e) {
             //if token invalid
             this.tokens.splice(this.tokens.indexOf(t),1)
