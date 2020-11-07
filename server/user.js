@@ -10,7 +10,7 @@ const login = async (username, pass) => {
         let query = `select * from users where username = '${username}'`;
         const response = await client.query(query);
         if (response.rows.length == 0) {
-            console.log(`No users found with name: ${username}`)
+            console.log(`[LOGIN] No users found with name: ${username}`)
             client.release();
             return null;
         } else {
@@ -21,7 +21,7 @@ const login = async (username, pass) => {
                 const token = jwt.sign({username: username}, process.env.USER_SECRET, {expiresIn: '15m'});
                 return token;
             } else {
-                console.log(`Login Attempt: ${username}'s password incorrectly guessed.`);
+                console.error(`[LOGIN] Error - Incorrect password`);
                 return null;
             }
         }
@@ -53,7 +53,7 @@ const create = async (username, pass, email) => {
 };
 
 exports.validate = (req, res) => {
-    console.log("Valdiating login...");
+    console.log("[LOGIN] Valdiating...");
     login(req.body.username,req.body.password).then(token => {
         let success;
         let err = ``;
@@ -64,7 +64,7 @@ exports.validate = (req, res) => {
             success = true;
         }
         res.json({ success: success, token: token, err: err});
-        console.log(`${req.body.username} logged in? ${success}`);
+        console.log(`[LOGIN] ${req.body.username} successfully logged in? ${success}`);
     })
 }
 
@@ -75,7 +75,7 @@ exports.invalidate = (req, res) => {
     if (token) {
         blacklist.tokens.push(token)
         jwt.verify(token, process.env.USER_SECRET, {},(err, decoded) => {
-            status = `Success: ${decoded.username} has logged out.`;
+            status = `[LOGOUT] Success: ${decoded.username} has logged out.`;
         })
         res.json({ status: status });
     } else {
@@ -84,13 +84,12 @@ exports.invalidate = (req, res) => {
     console.log(status)
 }
 
-exports.isValid = (req, res) => {
+exports.isAuth = (req, res) => {
     let auth = req.headers['authorization']
     let token = auth.split(' ')[1];
     let blacklisted = blacklist.tokens.find(t => t === token)
     if (!blacklisted) {
         jwt.verify(token, process.env.USER_SECRET, {}, (e, decoded) => {
-            console.log(e);
             if (e) {
                 res.sendStatus(401);
             } else {

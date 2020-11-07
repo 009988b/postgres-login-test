@@ -5,7 +5,7 @@ import auth from '../../Auth';
 export default function Home()
 {
     const checkLogged = () => {
-        axios.get("http://localhost:5000/", {
+        axios.get("http://localhost:5000/user/isauth", {
             headers: {
                 'Authorization' : 'Bearer ' + localStorage.getItem('jwt')
             }
@@ -29,7 +29,7 @@ export default function Home()
 
     const logOut = React.useCallback(async (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
-        const res = await axios.get("http://localhost:5000/logout", {
+        const res = await axios.get("http://localhost:5000/user/deauth", {
             headers: {
                 'Authorization' : 'Bearer ' + localStorage.getItem('jwt')
             }

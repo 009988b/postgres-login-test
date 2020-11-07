@@ -40,6 +40,9 @@ app.listen(PORT, () => {
 });
 
 //General
+app.get('/',(req,res) => {
+    res.sendStatus(200)
+})
 //User
 app.get('/user/isauth', userMW, user.isAuth)
 app.get('/user/deauth', user.invalidate)

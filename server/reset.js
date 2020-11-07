@@ -19,7 +19,7 @@ const createCode = (email) => {
 }
 
 const update = () => {
-    let status = `active reset codes: ${this.active.length} -> `
+    let status = `[UPDATE] active reset codes: ${this.active.length} -> `
     for (const i of this.active) {
         if (Date.now() >= i.expires) {
             this.active.splice(this.active.indexOf(i),1)
@@ -39,8 +39,12 @@ const setPass = async (email, pw) => {
     const hashed = await bcrypt.hash(pw, salt)
     const client = await pool.connect()
     let query = `update users set password = '${hashed}' where email = '${email}'`
-    const result = await client.query(query)
-    console.log(result)
+    let result = await client.query(query)
+    console.log(`[PWRESET] ${result.command} ${result.rowCount} (${email})` )
+    let name_query = `select username from users where email = '${email}'`
+    let name_result = await client.query(name_query)
+    client.release()
+    return name_result.rows.username
 }
 
 const validate = (code) => {
@@ -83,7 +87,12 @@ exports.check = (req, res) => {
 }
 
 exports.setPass = (req, res) => {
-
+    setPass(req.body.email, req.body.password).then(username => {
+        res.json({
+            statusCode: 200,
+            username: username
+        })
+    })
 }
 
 setInterval(update, 60000)

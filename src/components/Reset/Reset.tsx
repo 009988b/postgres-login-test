@@ -10,6 +10,7 @@ export default function Reset() {
     const [recap, setRecap] = React.useState(false)
     const [error, setError] = React.useState('')
     const [password, setPassword] = React.useState('')
+    const [passConf, setPassConf] = React.useState('')
 
     const recapRef = React.useRef<ReCAPTCHA>(null)
 
@@ -46,15 +47,18 @@ export default function Reset() {
             headers: {
                 'Content-Type': 'application/json',
             }})
-        if (response) {
+        if (response.status === 200) {
             localStorage.setItem('reset-jwt', response.data.jwt)
             setStatus('code-sent')
+        } else {
+            setError('Code not accepted')
         }
     }
 
-    const sendPass = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    const resetPw = async (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault()
         const payload = {
+            email: email,
             password: password
         }
         const res = await axios.post("http://localhost:5000/reset/set-pw", payload, {
@@ -72,7 +76,7 @@ export default function Reset() {
 
     const submitCode = React.useCallback(sendCode, [code])
 
-    const submitPass = React.useCallback(sendPass, [password])
+    const resetPass = React.useCallback(resetPw, [email, password])
 
     if (status === 'email-sent') {
         return (
@@ -102,7 +106,24 @@ export default function Reset() {
         )
     } else if (status === 'code-sent') {
         return (
-            <div></div>
+            <div className="z-0 w-full h-full" id="grad">
+                <div className="z-10 container py-32 mx-auto flex justify-center">
+                    <div className="bg-white shadow-lg rounded px-8 pt-6 pb-8 mb-2 w-1/3">
+                        <div className="mb-4">
+                            <label className="block text-gray-800 text-md">
+                                Enter a new password
+                            </label>
+                            <input type="password" className="text-center font-bold shadow appearance-none border rounded w-2/3 py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:shadow-outline mb-4" maxLength={48} onChange={e => setPassword(e.target.value)}></input>
+                            <input type="password" className="text-center font-bold shadow appearance-none border rounded w-2/3 py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:shadow-outline mb-2" maxLength={48} onChange={e => setPassConf(e.target.value)}></input>
+                        </div>
+                        <div className="flex justify-center mb-4">
+                            <button className="h-1/2 w-1/3 bg-orange-400 hover:bg-orange-500 text-white font-bold py-2 px-4 rounded focus:outline-none shadow" onClick={resetPass} disabled={code.length !== 6}>
+                                Update
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         )
     } else {
         return (
